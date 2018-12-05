@@ -69,9 +69,6 @@ def cnn_model():
 
 
 
-def lr_schedule(epoch):
-    return lr*(0.1**int(epoch/10))
-
 if __name__ == '__main__':
 
     try:
@@ -128,9 +125,6 @@ if __name__ == '__main__':
     print("Training matrix class shape", Y.shape)
     print("Testing matrix shape", X_test.shape)
 
-   # X_train = X.reshape(39209, 2304)
-  #  X_test = X_test.reshape(12630, 2304)
-
     X_train = X.reshape(X.shape[0], 1, IMG_SIZE, IMG_SIZE)
     X_test = X_test.reshape(X_test.shape[0], 1, IMG_SIZE, IMG_SIZE)
 
@@ -154,3 +148,6 @@ if __name__ == '__main__':
     print('Test accuracy:', score[1])
 
     model.summary()
+
+#Test score: 0.2815010042225474
+#Test accuracy: 0.9307996832843065

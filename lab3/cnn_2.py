@@ -16,33 +16,34 @@ from keras.optimizers import SGD
 from keras.utils import np_utils
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
 from keras import backend as K
+
 K.set_image_data_format('channels_first')
 
 from matplotlib import pyplot as plt
 
-
 NUM_CLASSES = 43
 IMG_SIZE = 48
+
 
 def preprocess_img(img):
     # Histogram normalization in y
     hsv = color.rgb2hsv(img)
-    hsv[:,:,2] = exposure.equalize_hist(hsv[:,:,2])
+    hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
     img = color.hsv2rgb(hsv)
 
     # central scrop
     min_side = min(img.shape[:-1])
-    centre = img.shape[0]//2, img.shape[1]//2
-    img = img[centre[0]-min_side//2:centre[0]+min_side//2,
-              centre[1]-min_side//2:centre[1]+min_side//2,
-              :]
+    centre = img.shape[0] // 2, img.shape[1] // 2
+    img = img[centre[0] - min_side // 2:centre[0] + min_side // 2,
+          centre[1] - min_side // 2:centre[1] + min_side // 2,
+          :]
 
     img = color.rgb2gray(img)
     # rescale to standard size
     img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
 
     # roll color axis to axis 0
-    img = np.rollaxis(img,-1)
+    img = np.rollaxis(img, -1)
 
     return img
 
@@ -51,26 +52,33 @@ def get_class(img_path):
     return int(img_path.split('/')[-2])
 
 
-
 def cnn_model():
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3, 3),
-                     activation='relu',
-                     input_shape=(1, IMG_SIZE, IMG_SIZE)))
+    model.add(Conv2D(32, (3, 3),
+                     input_shape=(1, IMG_SIZE, IMG_SIZE),
+                     activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='tanh'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, (3, 3),
+                     activation='sigmoid'))
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(128, (3, 3),
+                     activation='tanh'))
+    model.add(Conv2D(128, (3, 3), activation='sigmoid'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
+
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(512, activation='linear'))
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
 
     return model
-
-
-
-def lr_schedule(epoch):
-    return lr*(0.1**int(epoch/10))
 
 if __name__ == '__main__':
 
@@ -107,7 +115,6 @@ if __name__ == '__main__':
             hf.create_dataset('imgs', data=X)
             hf.create_dataset('labels', data=Y)
 
-
     lr = 0.01
     model = cnn_model()
 
@@ -128,8 +135,8 @@ if __name__ == '__main__':
     print("Training matrix class shape", Y.shape)
     print("Testing matrix shape", X_test.shape)
 
-   # X_train = X.reshape(39209, 2304)
-  #  X_test = X_test.reshape(12630, 2304)
+    # X_train = X.reshape(39209, 2304)
+    #  X_test = X_test.reshape(12630, 2304)
 
     X_train = X.reshape(X.shape[0], 1, IMG_SIZE, IMG_SIZE)
     X_test = X_test.reshape(X_test.shape[0], 1, IMG_SIZE, IMG_SIZE)
@@ -154,3 +161,4 @@ if __name__ == '__main__':
     print('Test accuracy:', score[1])
 
     model.summary()
+
