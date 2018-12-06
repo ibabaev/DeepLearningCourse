@@ -54,27 +54,27 @@ def get_class(img_path):
 
 def cnn_model():
     model = Sequential()
-    model.add(Conv2D(32, (3, 3),
+    model.add(Conv2D(48, (3, 3),
                      input_shape=(1, IMG_SIZE, IMG_SIZE),
                      activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='tanh'))
+    model.add(Conv2D(48, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.2))
 
     model.add(Conv2D(64, (3, 3),
-                     activation='sigmoid'))
+                     activation='relu'))
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.2))
 
     model.add(Conv2D(128, (3, 3),
-                     activation='tanh'))
-    model.add(Conv2D(128, (3, 3), activation='sigmoid'))
+                     activation='relu'))
+    model.add(Conv2D(128, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.2))
 
     model.add(Flatten())
-    model.add(Dense(512, activation='linear'))
+    model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
 
@@ -162,5 +162,5 @@ if __name__ == '__main__':
 
     model.summary()
 
-#Test score: 0.2358665168497738
-#Test accuracy: 0.9441805225841978
+#Test score: 0.16616949849368995
+#Test accuracy: 0.960807600968996
