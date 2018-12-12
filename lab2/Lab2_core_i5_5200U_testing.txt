@@ -1,0 +1,61 @@
+loss='categorical_crossentropy', optimizer='adam'
+epochs=10,
+batch_size=128,
+shuffle=True,
+
+39209/39209 [==============================] - 46s 1ms/step - loss: 0.5303 - acc: 0.8415 - val_loss: 0.7519 - val_acc: 0.7957
+Test score: 0.7518915695136064
+Test accuracy: 0.7957244655676333
+
+
+39209/39209 [==============================] - 62s 2ms/step - loss: 0.2759 - acc: 0.9114 - val_loss: 0.6244 - val_acc: 0.8321
+Test score: 0.6243522310294712
+Test accuracy: 0.8321456849150306
+
+
+39209/39209 [==============================] - 69s 2ms/step - loss: 0.8910 - acc: 0.7214 - val_loss: 0.9719 - val_acc: 0.7239
+Test score: 0.9719476210910558
+Test accuracy: 0.7239113222297372
+
+
+39209/39209 [==============================] - 82s 2ms/step - loss: 1.2576 - acc: 0.5827 - val_loss: 1.0739 - val_acc: 0.6842
+Test score: 1.0738855330413613
+Test accuracy: 0.6842438638446261
+
+
+39209/39209 [==============================] - 50s 1ms/step - loss: 0.2834 - acc: 0.9100 - val_loss: 0.7069 - val_acc: 0.8035
+Test score: 0.7069109709793296
+Test accuracy: 0.8034837687855567
+
+
+39209/39209 [==============================] - 123s 3ms/step - loss: 0.2874 - acc: 0.9071 - val_loss: 0.5529 - val_acc: 0.8478
+Test score: 0.5529451138805229
+Test accuracy: 0.8478226445349831
+
+==============================================
+loss='mean_squared_error', optimizer='sgd'
+
+0, 1, 4 models:
+39209/39209 [==============================] - 30s 777us/step - loss: 0.0230 - acc: 0.0277 - val_loss: 0.0229 - val_acc: 0.0308
+Test score: 0.02286850640628419
+Test accuracy: 0.03079968329846434
+
+39209/39209 [==============================] - 36s 915us/step - loss: 0.0230 - acc: 0.0238 - val_loss: 0.0229 - val_acc: 0.0530
+Test score: 0.022895659175970588
+Test accuracy: 0.05257323832617614
+
+=================================================
+loss='categorical_crossentropy', optimizer='adam'
+epochs=10,
+batch_size=32,
+shuffle=True,
+
+0, 1 models:
+
+39209/39209 [==============================] - 158s 4ms/step - loss: 2.3993 - acc: 0.2411 - val_loss: 2.3407 - val_acc: 0.2890
+Test score: 2.3407461115413493
+Test accuracy: 0.2889944576310998
+
+39209/39209 [==============================] - 212s 5ms/step - loss: 0.4225 - acc: 0.8652 - val_loss: 0.6802 - val_acc: 0.8243
+Test score: 0.6802490646180329
+Test accuracy: 0.8243072050578615
