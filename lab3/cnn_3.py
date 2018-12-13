@@ -150,7 +150,7 @@ if __name__ == '__main__':
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     # Let's train
     model.fit(X_train, Y_train,
-              epochs=10,
+              epochs=20,
               batch_size=128,
               shuffle=True,
               verbose=1,
