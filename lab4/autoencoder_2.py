@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from keras.models import Model
 from keras.optimizers import RMSprop
-from keras.layers import Input,Dense,Flatten,Dropout,merge,Reshape,Conv2D,MaxPooling2D,UpSampling2D,Conv2DTranspose
+from keras.layers import Input, Dense, Flatten, Dropout, merge, Reshape, Conv2D, MaxPooling2D, UpSampling2D, \
+    Conv2DTranspose, AveragePooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model,Sequential
 from keras.callbacks import ModelCheckpoint
@@ -53,40 +54,63 @@ def get_class(img_path):
 
 def cnn_model():
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3, 3),
-                     activation='relu',
-                     input_shape=(1, IMG_SIZE, IMG_SIZE)))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add()
+    model.add(Conv2D(32, (3, 3),
+                     input_shape=(1, IMG_SIZE, IMG_SIZE),
+                     activation='relu'))
+
+    model.add(AveragePooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, (3, 3),
+                     activation='relu'))
+
+    model.add(AveragePooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(128, (3, 3),
+                     activation='relu'))
+    model.add(Dropout(0.2))
+
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
+
 
     return model
 
 def encoder(input_img):
-    conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
+    #encoder
+    #input = 48 x 48 x 1 (wide and thin)
+    conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img) #48 x 48 x 32
     conv1 = BatchNormalization()(conv1)
-    conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv1)
+    pool1 = AveragePooling2D(pool_size=(2, 2))(conv1)
+    conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1) #48 x 48 x 64
     conv2 = BatchNormalization()(conv2)
-    pool = MaxPooling2D(pool_size=(2, 2))(conv2)
+    pool2 = AveragePooling2D(pool_size=(2, 2))(conv2) #24 x 24 x 64
+    conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(pool2) #48 x 48 x 64
+    conv3 = BatchNormalization()(conv3)
 
-    return pool
+    return conv3
 
-def decoder(conv4):
-    up = UpSampling2D((2,2))(conv4)
-    conv6 = Conv2D(32, (3, 3), activation='relu', padding='same')(up)
+def decoder(conv3):
+    #decoder
+    conv4 = Conv2D(128, (3, 3), activation='relu', padding='same')(conv3) #48 x 48 x 64
+    conv4 = BatchNormalization()(conv4)
+    up = UpSampling2D((2,2))(conv4) #48 x 48 x 64
+    conv5 = Conv2D(64, (3, 3), activation='relu', padding='same')(up) #48 x 48 x 32
+    conv5 = BatchNormalization()(conv5)
+    up2 = UpSampling2D((2, 2))(conv5)  # 48 x 48 x 64
+    conv6 = Conv2D(32, (3, 3), activation='relu', padding='same')(up2) #48 x 48 x 32
     conv6 = BatchNormalization()(conv6)
-    decoded = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(conv6)
+    decoded = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(conv6) # 28 x 28 x 1
 
     return decoded
 
 def fc(enco):
     drop = Dropout(0.25)(enco)
     flat = Flatten()(drop)
-    den = Dense(128, activation='relu')(flat)
+    den = Dense(512, activation='relu')(flat)
     drop2 = Dropout(0.5)(den)
     out = Dense(NUM_CLASSES, activation='softmax')(drop2)
     return out
@@ -206,7 +230,7 @@ if __name__ == '__main__':
 
     encode = encoder(input_img)
     full_model = Model(input_img, fc(encode))
-    layerCount = 6
+    layerCount = 9
     for l1, l2 in zip(full_model.layers[:layerCount], autoencoder.layers[0:layerCount]):
         l1.set_weights(l2.get_weights())
 
