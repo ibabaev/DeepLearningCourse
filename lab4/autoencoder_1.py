@@ -279,3 +279,7 @@ if __name__ == '__main__':
 
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+
+#last step:  loss: 0.0092 - acc: 0.9981 - val_loss: 0.8978 - val_acc: 0.9170
+#Test loss: 0.897757806686944
+#Test accuracy: 0.9170229612506767
