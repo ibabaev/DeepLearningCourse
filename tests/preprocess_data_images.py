@@ -58,23 +58,7 @@ if __name__ == '__main__':
     X = np.array(imgs, dtype='float32')
     Y = np.array(labels, dtype='uint8')
 
-    with h5py.File('X.h5', 'w') as hf:
-        hf.create_dataset('imgs', data=X)
-        hf.create_dataset('labels', data=Y + 1)
-
-    test = pd.read_csv('GT-final_test.csv', sep=';')
-
-    X_test = []
-    y_test = []
-    i = 0
-    for file_name, class_id in zip(list(test['Filename']), list(test['ClassId'])):
-        img_path = os.path.join(r'GTSRB\Final_Test\Images\\'[:-1], file_name)
-        X_test.append(preprocess_img(io.imread(img_path)))
-        y_test.append(class_id + 1)
-
-    X_test = np.array(X_test, dtype='float32')
-    y_test = np.array(y_test, dtype='uint8')
-
-    with h5py.File('X_test.h5', 'w') as hf:
+    with h5py.File(r'D:\X3.h5', 'w') as hf:
         hf.create_dataset('imgs', data=X)
         hf.create_dataset('labels', data=Y)
+

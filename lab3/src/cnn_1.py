@@ -3,6 +3,8 @@ from skimage import io, color, exposure, transform
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import glob
 import h5py
 
@@ -137,7 +139,7 @@ if __name__ == '__main__':
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     # Let's train
     model.fit(X_train, Y_train,
-              epochs=10,
+              epochs=20,
               batch_size=128,
               shuffle=True,
               verbose=1,

@@ -1,8 +1,10 @@
+import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import numpy as np
 from skimage import io, color, exposure, transform
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import os
 import glob
 import h5py
 
@@ -15,9 +17,9 @@ from keras.layers.pooling import MaxPooling2D
 from keras.optimizers import SGD
 from keras.utils import np_utils
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
-from keras import backend as K
+from keras import backend as K, applications, Model
 
-K.set_image_data_format('channels_first')
+K.set_image_data_format('channels_last')
 
 from matplotlib import pyplot as plt
 
@@ -38,7 +40,6 @@ def preprocess_img(img):
           centre[1] - min_side // 2:centre[1] + min_side // 2,
           :]
 
-    img = color.rgb2gray(img)
     # rescale to standard size
     img = transform.resize(img, (IMG_SIZE, IMG_SIZE))
 
@@ -52,41 +53,12 @@ def get_class(img_path):
     return int(img_path.split('/')[-2])
 
 
-def cnn_model():
-    model = Sequential()
-    model.add(Conv2D(48, (3, 3),
-                     input_shape=(1, IMG_SIZE, IMG_SIZE),
-                     activation='relu'))
-    model.add(Conv2D(48, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.2))
-
-    model.add(Conv2D(64, (3, 3),
-                     activation='relu'))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.2))
-
-    model.add(Conv2D(128, (3, 3),
-                     activation='relu'))
-    model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.2))
-
-    model.add(Flatten())
-    model.add(Dense(512, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(NUM_CLASSES, activation='softmax'))
-
-    return model
-
 if __name__ == '__main__':
-
     try:
-        with  h5py.File('X.h5') as hf:
+        with  h5py.File('X3.h5') as hf:
             X, Y = hf['imgs'][:], hf['labels'][:]
 
-        print("Loaded images from X.h5")
+        print("Loaded images from X3.h5")
 
     except (IOError, OSError, KeyError):
         print("Error in reading X.h5. Processing all images...")
@@ -111,13 +83,29 @@ if __name__ == '__main__':
         X = np.array(imgs, dtype='float32')
         Y = np.eye(NUM_CLASSES, dtype='uint8')[labels]
 
-        with h5py.File('X.h5', 'w') as hf:
+        with h5py.File('X3.h5', 'w') as hf:
             hf.create_dataset('imgs', data=X)
             hf.create_dataset('labels', data=Y)
-
+    ############################################
     lr = 0.01
-    model = cnn_model()
 
+    model_start = applications.ResNet50(weights="imagenet", include_top=False, input_shape = (IMG_SIZE, IMG_SIZE, 3))
+    model_start.summary()
+
+    #fixed weights
+    for layer in model_start.layers:
+        layer.trainable = False
+
+    x = model_start.output
+    x = Flatten()(x)
+    x = Dense(512, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    predictions = Dense(NUM_CLASSES, activation='softmax')(x)
+
+    # creating the final model
+    model = Model(input=model_start.input, output=predictions)
+
+    ##################################################
     test = pd.read_csv('GT-final_test.csv', sep=';')
     X_test = []
     y_test = []
@@ -135,11 +123,8 @@ if __name__ == '__main__':
     print("Training matrix class shape", Y.shape)
     print("Testing matrix shape", X_test.shape)
 
-    # X_train = X.reshape(39209, 2304)
-    #  X_test = X_test.reshape(12630, 2304)
-
-    X_train = X.reshape(X.shape[0], 1, IMG_SIZE, IMG_SIZE)
-    X_test = X_test.reshape(X_test.shape[0], 1, IMG_SIZE, IMG_SIZE)
+    X_train = np.reshape(X, [-1, IMG_SIZE, IMG_SIZE, 3])
+    X_test = np.reshape(X_test, [-1, IMG_SIZE, IMG_SIZE, 3])
 
     print("Training matrix shape", X_train.shape)
     print("Testing matrix shape", X_test.shape)
@@ -147,10 +132,17 @@ if __name__ == '__main__':
     Y_train = np_utils.to_categorical(Y, NUM_CLASSES)
     Y_test = np_utils.to_categorical(Y_test, NUM_CLASSES)
 
+    print(np.max(X_train), np.max(X_test))
+    #################DATA READY##########################################################################
+
+    batch_size = 64
+    epochs = 30
+    eh = 20
+
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     # Let's train
     model.fit(X_train, Y_train,
-              epochs=20,
+              epochs=2,
               batch_size=128,
               shuffle=True,
               verbose=1,
@@ -162,5 +154,4 @@ if __name__ == '__main__':
 
     model.summary()
 
-#Test score: 0.16616949849368995
-#Test accuracy: 0.960807600968996
+#

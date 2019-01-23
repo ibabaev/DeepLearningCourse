@@ -3,6 +3,9 @@ from skimage import io, color, exposure, transform
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
+
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import glob
 import h5py
 
@@ -10,8 +13,11 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential, model_from_json
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Conv2D
-from keras.layers.pooling import MaxPooling2D
-
+from keras.layers.pooling import MaxPooling2D, AveragePooling2D
+from keras.utils import plot_model
+import graphviz
+from IPython.display import SVG
+from keras.utils.vis_utils import model_to_dot
 from keras.optimizers import SGD
 from keras.utils import np_utils
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
@@ -52,33 +58,33 @@ def get_class(img_path):
     return int(img_path.split('/')[-2])
 
 
+# lenet-5 like style
 def cnn_model():
     model = Sequential()
     model.add(Conv2D(32, (3, 3),
                      input_shape=(1, IMG_SIZE, IMG_SIZE),
                      activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='tanh'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(AveragePooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.2))
 
     model.add(Conv2D(64, (3, 3),
-                     activation='sigmoid'))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+                     activation='relu'))
+
+    model.add(AveragePooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.2))
 
     model.add(Conv2D(128, (3, 3),
-                     activation='tanh'))
-    model.add(Conv2D(128, (3, 3), activation='sigmoid'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+                     activation='relu'))
     model.add(Dropout(0.2))
 
     model.add(Flatten())
-    model.add(Dense(512, activation='linear'))
+    model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
 
     return model
+
 
 if __name__ == '__main__':
 
@@ -115,18 +121,12 @@ if __name__ == '__main__':
             hf.create_dataset('imgs', data=X)
             hf.create_dataset('labels', data=Y)
 
-    lr = 0.01
+    lr = 0.001
     model = cnn_model()
 
     test = pd.read_csv('GT-final_test.csv', sep=';')
     X_test = []
     y_test = []
-
-    i = 0
-    for file_name, class_id in zip(list(test['Filename']), list(test['ClassId'])):
-        img_path = os.path.join('GTSRB\Final_Test\Images\\', file_name)
-        X_test.append(preprocess_img(io.imread(img_path)))
-        y_test.append(class_id)
 
     X_test = np.array(X_test)
     Y_test = np.array(y_test)
@@ -149,8 +149,12 @@ if __name__ == '__main__':
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     # Let's train
+
+
+    plot_model(model, show_shapes=True, expand_nested=True, to_file='model.png')
+
     model.fit(X_train, Y_train,
-              epochs=10,
+              epochs=30,
               batch_size=128,
               shuffle=True,
               verbose=1,
@@ -162,5 +166,5 @@ if __name__ == '__main__':
 
     model.summary()
 
-#Test score: 0.2358665168497738
-#Test accuracy: 0.9441805225841978
+    # Test score: 0.2358665168497738
+    # Test accuracy: 0.9441805225841978
