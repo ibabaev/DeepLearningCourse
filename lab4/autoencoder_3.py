@@ -289,7 +289,7 @@ if __name__ == '__main__':
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
-#batch
+#batch ~ 29s per epoch
 #epochs 30\20
-#Test loss: 0.6233248480330925
-#Test accuracy: 0.8612034838065588
+#Test loss: 0.28103954605813064
+#Test accuracy: 0.9546318289974995

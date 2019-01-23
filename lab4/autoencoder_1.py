@@ -68,9 +68,9 @@ def cnn_model():
 
 def encoder(input_img):
     conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(input_img)
-    conv1 = BatchNormalization()(conv1)
+#    conv1 = BatchNormalization()(conv1)
     conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv1)
-    conv2 = BatchNormalization()(conv2)
+#    conv2 = BatchNormalization()(conv2)
     pool = MaxPooling2D(pool_size=(2, 2))(conv2)
 
     return pool
@@ -78,7 +78,7 @@ def encoder(input_img):
 def decoder(conv4):
     up = UpSampling2D((2,2))(conv4)
     conv6 = Conv2D(32, (3, 3), activation='relu', padding='same')(up)
-    conv6 = BatchNormalization()(conv6)
+#    conv6 = BatchNormalization()(conv6)
     decoded = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(conv6)
 
     return decoded
@@ -206,7 +206,7 @@ if __name__ == '__main__':
 
     encode = encoder(input_img)
     full_model = Model(input_img, fc(encode))
-    layerCount = 6
+    layerCount = 4#6
     for l1, l2 in zip(full_model.layers[:layerCount], autoencoder.layers[0:layerCount]):
         l1.set_weights(l2.get_weights())
 
@@ -262,3 +262,7 @@ if __name__ == '__main__':
 #epochs 30\20
 #Test loss: 0.6233248480330925
 #Test accuracy: 0.8612034838065588
+
+#NO BATCH 15s, 8s
+#Test loss: 0.43670947570619206
+#Test accuracy: 0.921773555046589
